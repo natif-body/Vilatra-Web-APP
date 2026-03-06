@@ -1,0 +1,16 @@
+/* Velatra - base styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.animate-in {
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  animation-name: fadeIn;
+}
+
+.duration-1000 {
+  animation-duration: 1000ms;
+}

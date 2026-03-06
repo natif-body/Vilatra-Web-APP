@@ -3,21 +3,30 @@ import React, { useState } from 'react';
 import { AppState, ClubInfo, CoachInfo } from '../types';
 import { Card, Button, Input, Badge } from '../components/UI';
 import { TargetIcon, HomeIcon, DumbbellIcon, MessageCircleIcon, Edit2Icon, SaveIcon, XIcon, PlusIcon, Trash2Icon } from '../components/Icons';
+import { db, doc, updateDoc } from '../firebase';
 
 export const AboutPage: React.FC<{ state: AppState, setState?: any }> = ({ state, setState }) => {
   const { aboutInfo, coaches, user } = state;
-  const isCoach = user?.role === 'coach';
+  const isCoach = user?.role === 'coach' || user?.role === 'studio_admin';
   const [isEditing, setIsEditing] = useState(false);
   const [tempInfo, setTempInfo] = useState<ClubInfo>(aboutInfo);
   const [tempCoaches, setTempCoaches] = useState<CoachInfo[]>(coaches);
 
-  const handleSave = () => {
-    if (setState) {
+  const handleSave = async () => {
+    if (setState && state.studio?.id) {
       setState((prev: AppState) => ({
         ...prev,
         aboutInfo: tempInfo,
         coaches: tempCoaches
       }));
+      try {
+        await updateDoc(doc(db, "studios", state.studio!.id), {
+          aboutInfo: tempInfo,
+          coaches: tempCoaches
+        });
+      } catch (err) {
+        console.error("Erreur sauvegarde infos studio :", err);
+      }
     }
     setIsEditing(false);
   };

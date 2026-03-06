@@ -9,13 +9,14 @@ import {
   signOut,
   onAuthStateChanged
 } from "firebase/auth";
-import { 
-  getFirestore, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  onSnapshot, 
-  collection, 
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  collection,
   updateDoc,
   deleteDoc,
   query,
@@ -29,15 +30,16 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
-export { 
-  signInWithPopup, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
+export {
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
   onAuthStateChanged,
   doc,
   setDoc,
   getDoc,
+  getDocs,
   onSnapshot,
   collection,
   updateDoc,
