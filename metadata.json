@@ -1,0 +1,7 @@
+{
+  "name": "Velatra",
+  "description": "Premium SaaS application for fitness studios to manage training programs, member tracking, and coach-member communication.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
