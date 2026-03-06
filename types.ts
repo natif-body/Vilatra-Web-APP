@@ -6,9 +6,14 @@ export type Goal = "Perte de poids" | "Prise de masse" | "Sport santé bien-êtr
 export interface Studio {
   id: string;
   name: string;
-  code: string; // Code d'invitation pour les membres/coachs
+  code: string; // Code d'invitation pour les membres
+  coachCode?: string; // Code d'invitation pour les coachs
   adminId: string;
   createdAt: string;
+  aboutInfo?: ClubInfo;
+  coaches?: CoachInfo[];
+  exercises?: Exercise[];
+  fixedCosts?: FixedCost[];
 }
 
 export interface User {
@@ -165,7 +170,7 @@ export interface BodyData {
 
 export interface CoachInfo {
   id: number;
-  studioId: string;
+  studioId?: string;
   name: string;
   role: string;
   whatsapp: string;

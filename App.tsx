@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { 
-  User, AppState, Program, Preset, SessionLog, Performance, BodyData, Message, FeedItem,
-  SupplementProduct, SupplementOrder, FixedCost, CommissionPayment, Prospect, Newsletter 
+import {
+  User, Studio, AppState, Program, Preset, SessionLog, Performance, BodyData, Message, FeedItem,
+  SupplementProduct, SupplementOrder, FixedCost, CommissionPayment, Prospect, Newsletter
 } from './types';
 import { 
   INIT_EXERCISES, CLUB_INFO, COACHES 

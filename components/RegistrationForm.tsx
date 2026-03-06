@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, Input, Button } from './UI';
 import { ChevronLeftIcon, TargetIcon, InfoIcon } from './Icons';
 import { Goal, Gender, User, Studio } from '../types';
-import { GOALS } from '../constants';
+import { GOALS, INIT_SUPPLEMENTS } from '../constants';
 import { auth, db, createUserWithEmailAndPassword, doc, setDoc, query, collection, where, getDocs } from '../firebase';
 
 interface RegistrationFormProps {
@@ -15,6 +15,7 @@ interface RegistrationFormProps {
 export const RegistrationForm: React.FC<RegistrationFormProps> = ({ mode, onRegister, onCancel }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [joinRole, setJoinRole] = useState<'member' | 'coach'>('member');
   const [formData, setFormData] = useState({
     studioName: "",
     studioCode: "",
@@ -31,7 +32,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ mode, onRegi
 
   const handleSubmit = async () => {
     if (!formData.email || !formData.password || !formData.name) return;
-    
+
     setLoading(true);
     try {
       let targetStudioId = "";
@@ -42,8 +43,22 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ mode, onRegi
           setLoading(false);
           return;
         }
-        const q = query(collection(db, "studios"), where("code", "==", formData.studioCode));
-        const querySnapshot = await getDocs(q);
+
+        // Chercher par code membre ou code coach selon le rôle choisi
+        let querySnapshot;
+        if (joinRole === 'coach') {
+          const q = query(collection(db, "studios"), where("coachCode", "==", formData.studioCode));
+          querySnapshot = await getDocs(q);
+          // Fallback: accepte aussi le code membre pour les coachs
+          if (querySnapshot.empty) {
+            const q2 = query(collection(db, "studios"), where("code", "==", formData.studioCode));
+            querySnapshot = await getDocs(q2);
+          }
+        } else {
+          const q = query(collection(db, "studios"), where("code", "==", formData.studioCode));
+          querySnapshot = await getDocs(q);
+        }
+
         if (querySnapshot.empty) {
           alert("Code d'invitation invalide.");
           setLoading(false);
@@ -54,17 +69,27 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ mode, onRegi
 
       // 1. Création du compte Auth
       const { user } = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-      
+
       if (mode === 'create_studio') {
         targetStudioId = "studio_" + Date.now();
+        const coachCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const memberCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
         const newStudio: Studio = {
           id: targetStudioId,
           name: formData.studioName,
-          code: Math.random().toString(36).substring(2, 8).toUpperCase(),
+          code: memberCode,
+          coachCode: coachCode,
           adminId: user.uid,
           createdAt: new Date().toISOString()
         };
         await setDoc(doc(db, "studios", targetStudioId), newStudio);
+
+        // Initialiser le catalogue de suppléments pour ce studio
+        for (const product of INIT_SUPPLEMENTS) {
+          const p = { ...product, id: `${targetStudioId}_${product.id}`, studioId: targetStudioId };
+          await setDoc(doc(db, "supplementProducts", p.id), p);
+        }
       }
 
       // 2. Création du profil Firestore
@@ -72,9 +97,9 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ mode, onRegi
         id: Date.now(),
         studioId: targetStudioId,
         code: formData.email.split('@')[0],
-        pwd: "", 
+        pwd: "",
         name: formData.name,
-        role: mode === 'create_studio' ? "studio_admin" : "member",
+        role: mode === 'create_studio' ? "studio_admin" : joinRole,
         avatar: formData.name.substring(0, 2).toUpperCase(),
         gender: formData.gender,
         age: formData.age,
@@ -87,7 +112,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ mode, onRegi
         streak: 0,
         pointsFidelite: 0
       };
-      
+
       await setDoc(doc(db, "users", user.uid), newUser);
       onRegister();
     } catch (error: any) {
@@ -103,10 +128,17 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ mode, onRegi
   const toggleGoal = (goal: Goal) => {
     setFormData(prev => ({
       ...prev,
-      objectifs: prev.objectifs.includes(goal) 
+      objectifs: prev.objectifs.includes(goal)
         ? prev.objectifs.filter(g => g !== goal)
         : [...prev.objectifs, goal]
     }));
+  };
+
+  const isStep1Valid = () => {
+    if (!formData.email || !formData.password || formData.password.length < 6 || !formData.name) return false;
+    if (mode === 'create_studio' && !formData.studioName) return false;
+    if (mode === 'join_studio' && !formData.studioCode) return false;
+    return true;
   };
 
   return (
@@ -127,13 +159,34 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ mode, onRegi
             {mode === 'create_studio' ? (
               <div className="space-y-1">
                 <label className="text-[9px] font-black uppercase text-natif-textDark tracking-widest ml-1">Nom du Studio</label>
-                <Input placeholder="Ex: Velatra Fitness" value={formData.studioName} onChange={e => setFormData({...formData, studioName: e.target.value})} />
+                <Input placeholder="Ex: CrossFit Lyon" value={formData.studioName} onChange={e => setFormData({...formData, studioName: e.target.value})} />
               </div>
             ) : (
-              <div className="space-y-1">
-                <label className="text-[9px] font-black uppercase text-natif-textDark tracking-widest ml-1">Code d'invitation du Studio</label>
-                <Input placeholder="Ex: A1B2C3" value={formData.studioCode} onChange={e => setFormData({...formData, studioCode: e.target.value.toUpperCase()})} />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black uppercase text-natif-textDark tracking-widest ml-1">Je rejoins en tant que</label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setJoinRole('member')}
+                      className={`flex-1 py-3 rounded-xl border font-black text-[10px] tracking-widest transition-all ${joinRole === 'member' ? 'bg-natif-accent border-natif-accent text-white' : 'bg-white/5 border-white/10 text-natif-textDark'}`}
+                    >
+                      MEMBRE
+                    </button>
+                    <button
+                      onClick={() => setJoinRole('coach')}
+                      className={`flex-1 py-3 rounded-xl border font-black text-[10px] tracking-widest transition-all ${joinRole === 'coach' ? 'bg-natif-accent border-natif-accent text-white' : 'bg-white/5 border-white/10 text-natif-textDark'}`}
+                    >
+                      COACH
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black uppercase text-natif-textDark tracking-widest ml-1">
+                    Code d'invitation {joinRole === 'coach' ? '(Coach)' : '(Membre)'}
+                  </label>
+                  <Input placeholder="Ex: A1B2C3" value={formData.studioCode} onChange={e => setFormData({...formData, studioCode: e.target.value.toUpperCase()})} />
+                </div>
+              </>
             )}
             <div className="space-y-1">
               <label className="text-[9px] font-black uppercase text-natif-textDark tracking-widest ml-1">Votre Nom Complet</label>
@@ -147,7 +200,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({ mode, onRegi
               <label className="text-[9px] font-black uppercase text-natif-textDark tracking-widest ml-1">Choisir un mot de passe</label>
               <Input type="password" placeholder="••••••••" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
             </div>
-            <Button fullWidth onClick={nextStep} className="!py-4" disabled={!formData.email || !formData.password || formData.password.length < 6 || !formData.name || (mode === 'create_studio' && !formData.studioName) || (mode === 'join_studio' && !formData.studioCode)}>CONTINUER</Button>
+            <Button fullWidth onClick={nextStep} className="!py-4" disabled={!isStep1Valid()}>CONTINUER</Button>
           </div>
         )}
 

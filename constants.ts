@@ -1,4 +1,4 @@
-import { User, Exercise, Goal, ClubInfo, CoachInfo, SupplementProduct } from './types';
+import { Exercise, Goal, ClubInfo, CoachInfo, SupplementProduct } from './types';
 
 export const PROGRAM_DURATION_WEEKS = 7;
 export const COACH_EMAIL = "contact@velatra.com";
@@ -38,27 +38,6 @@ export const INIT_SUPPLEMENTS: SupplementProduct[] = [
   { id: "27", nom: "Sweat Unisexe", prixVente: 49.9, prixAchat: 24.5, stock: 0, cat: "Textile" }
 ];
 
-export const INIT_USERS: User[] = [
-  {
-    id: 1,
-    code: "coach",
-    pwd: "velatra2025",
-    name: "Coach Velatra",
-    role: "coach",
-    avatar: "CN",
-    gender: "M",
-    age: 30,
-    weight: 85,
-    height: 185,
-    objectifs: ["Performance sportive"],
-    notes: "Administrateur principal",
-    createdAt: new Date().toISOString(),
-    xp: 0,
-    streak: 0,
-    pointsFidelite: 0
-  }
-];
-
 export const GOALS: Goal[] = [
   "Perte de poids", "Prise de masse", "Sport santé bien-être", "Prépa physique",
   "Remise en forme", "Performance sportive", "Renforcement musculaire",
@@ -80,18 +59,13 @@ export const INIT_EXERCISES: Exercise[] = [
 ];
 
 export const CLUB_INFO: ClubInfo = {
-  phone: "07 43 10 37 90",
-  email: "contact@velatra.com",
-  googleReview: "https://g.page/r/CaxeYGUYMVkREBM/review",
-  description: "Velatra est un logiciel SaaS pour les salles de sport premium. Nous proposons des outils de gestion de coaching personnalisé, de suivi des membres et de communication.",
-  horaires: "Accès autonome avec badge 7j/7.\nLundi - Vendredi : 5h30 - 23h30\nWeek-end : 7h - 20h",
-  adresse: "155 route de Brignais, 69230 Saint-Genis-Laval",
-  mapsLink: "https://www.google.com/maps"
+  phone: "",
+  email: "",
+  googleReview: "",
+  description: "Bienvenue dans notre salle de sport. Personnalisez ces informations depuis les paramètres du club.",
+  horaires: "Lundi - Vendredi : 8h - 22h\nWeek-end : 9h - 18h",
+  adresse: "",
+  mapsLink: ""
 };
 
-export const COACHES: CoachInfo[] = [
-  { id: 1, name: "Thomas", role: "Coach & Gérant", whatsapp: "+33743103790", photo: null },
-  { id: 2, name: "Victor", role: "Conseiller Sportif", whatsapp: "+33743103790", photo: null },
-  { id: 3, name: "Tristan", role: "Coach Sportif", whatsapp: "+33743103790", photo: null },
-  { id: 4, name: "Evan", role: "Coach Sportif", whatsapp: "+33743103790", photo: null }
-];
+export const COACHES: CoachInfo[] = [];

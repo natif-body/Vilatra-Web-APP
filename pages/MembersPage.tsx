@@ -84,6 +84,7 @@ export const MembersPage: React.FC<{ state: AppState, setState: any, showToast: 
     } else {
       const newProg: Program = {
         id: Date.now(),
+        studioId: state.user!.studioId,
         memberId: Number(member.id),
         name: `Plan - ${member.name.split(' ')[0]}`,
         presetId: null,
